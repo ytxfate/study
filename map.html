@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<style type="text/css">
+		body,
+		html {
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			margin: 0;
+			font-family: "微软雅黑";
+		}
+
+		#allmap {
+			margin-left: 15%;
+			margin-right: 15%;
+			width: 70%;
+			height: 100%;
+		}
+
+		.div_left {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 15%;
+			height: 100%;
+			background-color: rgb(240, 255, 255);
+		}
+
+		.div_right {
+			position: absolute;
+			top: 0;
+			right: 0;
+			width: 15%;
+			height: 100%;
+			background-color: rgb(240, 255, 255);
+		}
+
+		.city_select_class {
+			width: 150px;
+		}
+	</style>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=PnQZjYEi40I2OB03o2BMGeChzYWCIyUe"></script>
+	<script type="text/javascript" src="http://api.map.baidu.com/library/AreaRestriction/1.2/src/AreaRestriction_min.js"></script>
+	<title>地图展示</title>
+</head>
+
+<body>
+	<div id="allmap"></div>
+	<div class="div_left">
+		凉山地图
+		<div>
+			<select name="city_name" id="city_select" onchange=select_change(value) class="city_select_class">
+				<option value="凉山州" selected>凉山州</option>
+				<option value="会东县">会东县</option>
+				<option value="会理县">会理县</option>
+				<option value="冕宁县">冕宁县</option>
+				<option value="喜德县">喜德县</option>
+				<option value="宁南县">宁南县</option>
+				<option value="布拖县">布拖县</option>
+				<option value="德昌县">德昌县</option>
+				<option value="昭觉县">昭觉县</option>
+				<option value="普格县">普格县</option>
+				<option value="木里县">木里县</option>
+				<option value="甘洛县">甘洛县</option>
+				<option value="盐源县">盐源县</option>
+				<option value="美姑县">美姑县</option>
+				<option value="西昌市">西昌市</option>
+				<option value="越西县">越西县</option>
+				<option value="金阳县">金阳县</option>
+				<option value="雷波县">雷波县</option>
+			</select>
+		</div>
+	</div>
+	<div class="div_right">
+		操作
+	</div>
+</body>
+
+</html>
+<script type="text/javascript">
+	// 百度地图API功能
+	var map = new BMap.Map("allmap", {
+		minZoom: 9,
+		maxZoom: 17
+	}); // 创建Map实例
+	// map.centerAndZoom(new BMap.Point(101.9828,27.719719), 8); // 初始化地图,设置中心点坐标和地图级别
+	var b = new BMap.Bounds(new BMap.Point(99.5, 25), new BMap.Point(104.5, 30.5));
+	try {
+		BMapLib.AreaRestriction.setBounds(map, b);
+	} catch (e) {
+		alert(e);
+	}
+	getBoundary("凉山州");
+
+	function getBoundary(sRegion) {
+		var bdary = new BMap.Boundary();
+		bdary.get(sRegion, function (rs) { //获取行政区域
+			map.clearOverlays(); //清除地图覆盖物       
+			var count = rs.boundaries.length; //行政区域的点有多少个
+			if (count === 0) {
+				alert('未能获取当前输入行政区域');
+				return;
+			}
+			var pointArray = [];
+			for (var i = 0; i < count; i++) {
+				var ply = new BMap.Polygon(rs.boundaries[i], {
+					strokeWeight: 2,
+					strokeColor: "#336633",
+					fillColor: "#CCFFFF",
+					fillOpacity: 0.1
+				}); //建立多边形覆盖物
+
+				map.addOverlay(ply); //添加覆盖物
+				pointArray = pointArray.concat(ply.getPath());
+			}
+			map.setViewport(pointArray); //调整视野  
+		});
+	}
+	map.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
+	// // 添加带有定位的导航控件
+	// var navigationControl = new BMap.NavigationControl({
+	// 	// 靠左上角位置
+	// 	anchor: BMAP_ANCHOR_TOP_LEFT,
+	// 	// LARGE类型
+	// 	type: BMAP_NAVIGATION_CONTROL_LARGE,
+	// 	// 启用显示定位
+	// 	enableGeolocation: true
+	// });
+	// map.addControl(navigationControl);
+	// // 添加定位控件
+	// var geolocationControl = new BMap.GeolocationControl();
+	// geolocationControl.addEventListener("locationSuccess", function (e) {
+	// 	// 定位成功事件
+	// 	var address = '';
+	// 	address += e.addressComponent.province;
+	// 	address += e.addressComponent.city;
+	// 	address += e.addressComponent.district;
+	// 	address += e.addressComponent.street;
+	// 	address += e.addressComponent.streetNumber;
+	// 	alert("当前定位地址为：" + address);
+	// });
+	// geolocationControl.addEventListener("locationError", function (e) {
+	// 	// 定位失败事件
+	// 	alert(e.message);
+	// });
+	// map.addControl(geolocationControl);
+	function add_icon(dict) {
+		for (var key in dict) {
+			var item = dict[key];
+			console.log(item);
+			var pt = new BMap.Point(item[0], item[1]);
+			var myIcon = new BMap.Icon("http://lbsyun.baidu.com/jsdemo/img/fox.gif", new BMap.Size(300,157));
+			var marker = new BMap.Marker(pt,{icon:myIcon});  // 创建标注
+			map.addOverlay(marker);              // 将标注添加到地图中
+		}
+	}
+	
+	function select_change(value) {
+		console.log(value);
+		getBoundary(value);
+	}
+	
+	add_icon({"aa":[101.9828,27.719719],"bb":[102.185171,28.563666]});
+</script>
